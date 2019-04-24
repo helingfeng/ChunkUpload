@@ -1,0 +1,10 @@
+{
+    "name": "helingfeng/laravel-chunk-upload-oss",
+    "authors": [
+        {
+            "name": "helingfeng",
+            "email": "857190327@qq.com"
+        }
+    ],
+    "require": {}
+}
