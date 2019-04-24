@@ -43,7 +43,7 @@ class UploadController extends Controller
         if ($resource_size >= $allow_max_file_size) {
             // return $this->fail('文件大小超出限制:' . $allow_max_file_size);
         }
-        $object = config() . DIRECTORY_SEPARATOR . uniqid() . DIRECTORY_SEPARATOR . $extension;
+        $object = config('chunk_upload.upload_path') . DIRECTORY_SEPARATOR . uniqid() . DIRECTORY_SEPARATOR . $extension;
         // 初始化分块上传，得到 upload_id
         $upload_id = $this->ossClient->initiateMultipartUpload($this->bucket, $object);
         $pieces = $this->ossClient->generateMultiuploadParts($resource_size, $part_size);
