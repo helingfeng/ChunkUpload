@@ -30,6 +30,4 @@ php artisan vendor:publish --provider "ChunkUpload\ChunkUploadServiceProvider"
 
 启动项目，并访问路径：https://yourhosts/example
 
-
-<video src="./demo.mp4" width="320" height="180" controls="controls"></video>
-
+![](./upload_demo.gif)
