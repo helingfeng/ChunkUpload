@@ -1,5 +1,5 @@
 {
-    "name": "helingfeng/laravel-chunk-upload-oss",
+    "name": "helingfeng/laravel-chunk-upload",
     "authors": [
         {
             "name": "helingfeng",
@@ -12,7 +12,9 @@
         }
     },
     "require": {
-        "aliyuncs/oss-sdk-php": "^2.3"
+        "aliyuncs/oss-sdk-php": "^2.3",
+        "laravel/framework": ">=6.0",
+        "ext-json": "*"
     },
     "extra": {
         "laravel": {

@@ -1,5 +1,7 @@
 <?php
+
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -7,16 +9,11 @@ use Illuminate\Routing\Router;
 |--------------------------------------------------------------------------
 |
 */
-
-Route::group([], function(Router $router){
-    
-    $router->get('/example', function () {
-        return view('chunk-upload::example');
-    });
-
+Route::namespace('\ChunkUpload\Controllers')->group(function (Router $router) {
     // 上传预处理
-    $router->post('/preprocess', '\ChunkUpload\Controllers\UploadController@preprocess')->name('chunk-preprocess');
+    $router->post('/preprocess', 'UploadController@preprocess')->name('chunk-preprocess');
     // 分块上传
-    $router->post('/uploading', '\ChunkUpload\Controllers\UploadController@uploading')->name('chunk-uploading');
-
+    $router->post('/uploading', 'UploadController@uploading')->name('chunk-uploading');
+    // 演示程序
+    $router->get('/show-upload-example', 'ExampleController@index');
 });

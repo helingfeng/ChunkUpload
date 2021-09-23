@@ -8,22 +8,35 @@
     <title>测试大文件上传</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
-        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
     <script src="http://libs.baidu.com/jquery/1.9.0/jquery.min.js"></script>
 </head>
-
 <body>
-    <h1>文件上传</h1>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>文件上传</h2>
+            <input type="file" name="upload_file" id="upload_file"/>
+        </div>
 
+        <div class="col-md-12">
+            <div class="progress" style="margin-top: 15px;">
+                <div class="progress-bar" style="width: 0%;">
+                    0%
+                </div>
+            </div>
 
-    <input type="file" name="upload_file" id="upload_file" />
-    <div>
-        <span id="console_output"> console output </span>
+            <div style="margin-top: 15px;">
+                文件上传结果：<span id="file_url">-</span>
+            </div>
+        </div>
     </div>
+</div>
+
 </body>
 <script>
-    ; (function ($) {
+    ;(function ($) {
         $.fn.chunkUpload = function (options) {
             var dft = {
                 // 预处理
@@ -48,11 +61,10 @@
             var file, fileName, fileSize, fileExtension;
             var chunkIndex = 0;
             var chunkCount = 0;
+            var pieces = [];
 
             var chunkSize = 2 * 1024 * 1024;
             var uploadId = 'uploadId';
-            var ossObject;
-            var upload_parts = [];
 
             var preprocess = function () {
                 $.ajax({
@@ -72,7 +84,8 @@
                         chunkCount = rst.pieces_count;
                         chunkSize = rst.part_size;
                         fileExtension = rst.extension;
-                        ossObject = rst.object;
+                        pieces = rst.pieces;
+                        chunkIndex = 0;
                         uploading();
                     },
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -82,19 +95,16 @@
             };
 
             var uploading = function () {
-                var start = chunkIndex * chunkSize;
-                var end = fileSize <= chunkSize ? fileSize : ((fileSize - start) > chunkSize ? (chunkSize + start) : (fileSize));
-                end = end - 1;
+                var piece = pieces[chunkIndex];
+                var start = piece['seekTo'];
+                var end = piece['seekTo'] + piece['length'];
+
                 console.log(start, end);
 
                 var form = new FormData();
                 form.append('chunk_file', file.slice(start, end));
-                form.append('extension', fileExtension);
-                form.append('part_index', chunkIndex + 1);
-                form.append('chunk_count', chunkCount);
+                form.append('part_index', ++chunkIndex);
                 form.append('upload_id', uploadId);
-                form.append('oss_object', ossObject);
-                form.append('parts', upload_parts.join(','));
 
                 $.ajax({
                     url: setting.uploadingRoute,
@@ -110,15 +120,15 @@
                     processData: false,
                     contentType: false,
                     success: function (rst) {
-                        setting.progress(rst.part_index, rst.chunk_count);
-                        upload_parts.push(rst.part);
+                        setting.progress(chunkIndex, chunkCount);
                         // 所有分块都已经上传
-                        if (Number(rst.part_index) >= Number(rst.chunk_count)) {
-                            setting.success(rst.resource);
-                        } else {
+                        if (rst.result_code === 'COMPLETE') {
+                            setting.success(rst.file_url);
+                        } else if (rst.result_code === 'PART_DONE') {
                             // 继续上传分块
-                            chunkIndex++;
-                            setTimeout(function () { uploading() }, 1);
+                            setTimeout(uploading, 100);
+                        } else {
+                            console.log(rst);
                         }
                     },
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -142,8 +152,14 @@
         $("#upload_file").chunkUpload({
             preprocessRoute: "{{ route('chunk-preprocess') }}",
             uploadingRoute: "{{ route('chunk-uploading') }}",
-            progress: function(idx, size){
-                $('#console_output').text(((idx/size)*100).toFixed(0) + '%');
+            progress: function (idx, size) {
+                console.log(idx, size);
+                var precent = ((idx / size) * 100).toFixed(0) + '%';
+                $('.progress-bar').css('width', precent);
+                $('.progress-bar').text(precent);
+            },
+            success: function (resource) {
+                $('#file_url').html(`<a href="${resource}">${resource}</a>`);
             }
         });
     });

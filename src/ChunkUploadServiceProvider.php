@@ -6,9 +6,6 @@ use Illuminate\Support\ServiceProvider;
 
 class ChunkUploadServiceProvider extends ServiceProvider
 {
-
-    protected $defer = false;
-
     public function boot()
     {
         $this->loadViewsFrom(__DIR__ . '/../views', 'chunk-upload');
@@ -23,7 +20,15 @@ class ChunkUploadServiceProvider extends ServiceProvider
 
     public function register()
     {
-        //
+        $this->app->bind(MultipartUpload::class, function ($app) {
+            $driver = $app['config']->get('chunk_upload.driver');
+            switch (strtoupper($driver)) {
+                case 'OSS':
+                    return new OssUploadClient();
+                default:
+                    return new LocalUploadClient();
+            }
+        });
     }
 
 }
