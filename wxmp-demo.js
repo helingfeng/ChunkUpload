@@ -1,3 +1,4 @@
+// 小程序分片上传示例
 wx.chooseMessageFile({
       count: 1,
       sizeType: ['original', 'compressed'],
